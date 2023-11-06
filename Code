@@ -1,145 +1,172 @@
-from tkinter import *
-import numpy as np
+import warnings
+warnings.simplefilter("ignore")
+import joblib
 
-#def showQuality():
-#    new = np.array([[float(e1.get()),float(e2.get()),float(e3.get()),float(e4.get()),float(e5.get()),float(e6.get()),float(e7.get()),float(e8.get()),float(e9.get()),float(e10.get()),float(e11.get())]])
-#    Ans = RF_clf.predict(new)
-#    fin=str(Ans)[1:-1]#IT WILL remove[ ]
-#    quality.insert(0, fin)
-
-def showQuality():
-    # Provide a default value of 0 for the missing feature
-    new = np.array([
-        [float(e1.get()), float(e2.get()), float(e3.get()), float(e4.get()), float(e5.get()), float(e6.get()),
-         float(e7.get()), float(e8.get()), float(e9.get()), float(e10.get()), float(e11.get()), 0.0]
-    ])
-    Ans = RF_clf.predict(new)
-    fin = str(Ans)[1:-1]  # It will remove [ ]
-    quality.insert(0, fin)
-
-
-
-#------------------------------------------------------------------------
-import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
+import numpy as np
 import seaborn as sns
+import matplotlib.pyplot as plt
+%matplotlib inline
+import scipy.stats as stats
+from scipy.stats import zscore
 
-# For this kernel, I amm only using the red wine dataset
-data = pd.read_csv('C:/Users/YASHU/Downloads/WineQT.csv')
-data.head()
-
-#Summary statistics
-data.describe()
-
-#All columns has the same number of data points
-extra = data[data.duplicated()]
-extra.shape
-
-
-# Let's proceed to separate 'quality' as the target variable and the rest as features.
-y = data.quality                  # set 'quality' as target
-X = data.drop('quality', axis=1)  # rest are features
-print(y.shape, X.shape)
-
-#Let's look at the correlation among the variables using Correlation chart
-colormap = plt.cm.viridis
-plt.figure(figsize=(12,12))
-plt.title('Correlation of Features', y=1.05, size=15)
-sns.heatmap(data.astype(float).corr(),linewidths=0.1,vmax=1.0, square=True, 
-            linecolor='white', annot=True)
-
-#Use Random Forest Classifier to train a prediction model
-
-from sklearn.model_selection import train_test_split, cross_val_score
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import roc_curve, roc_auc_score
-from sklearn.metrics import accuracy_score, log_loss
-from sklearn.metrics import confusion_matrix
-
-#Split data into training and test datasets
-seed = 8 # set seed for reproducibility
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,random_state=seed)
-
-
-#Train and evaluate the Random Forest Classifier with Cross Validation
-# Instantiate the Random Forest Classifier
-RF_clf = RandomForestClassifier(random_state=seed)
-
-
-# Compute k-fold cross validation on training dataset and see mean accuracy score
-cv_scores = cross_val_score(RF_clf,X_train, y_train, cv=10, scoring='accuracy')
-
-#Perform predictions
-RF_clf.fit(X_train, y_train)
-pred_RF = RF_clf.predict(X_test)
-
-def classify(model, X, y):
-    x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=42)
-    # train the model
-    model.fit(x_train, y_train)
-    print("Accuracy:", model.score(x_test, y_test) * 100)
-    
-    # cross-validation
-    score = cross_val_score(model, X, y, cv=5)
-    print("CV Score:", np.mean(score)*100)
-
+#from imblearn.over_sampling import SMOTE
+from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LogisticRegression
-model = LogisticRegression()
-classify(model, X, y)
+from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
-model = DecisionTreeClassifier()
-classify(model, X, y)
 from sklearn.ensemble import RandomForestClassifier
-model = RandomForestClassifier()
-classify(model, X, y)
+from sklearn.ensemble import ExtraTreesClassifier
+from sklearn.neighbors import KNeighborsClassifier
+#import xgboost as xgb
+#import lightgbm as lgb
 
+from sklearn import metrics
+from sklearn.metrics import classification_report
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection import cross_val_score
+from sklearn.model_selection import GridSearchCV
 
+df = pd.read_csv("/content/WineQT.csv")
 
-#------------------------------------------------------------------------
-master = Tk()
+df
 
-Label(master, text="Fixed Acidity", anchor="nw", width=15).grid(row=0)
-Label(master, text="Volatile Acidity", anchor="nw", width=15).grid(row=1)
-Label(master, text="Citric Acid", anchor="nw", width=15).grid(row=2)
-Label(master, text="Residual Sugar", anchor="nw", width=15).grid(row=3)
-Label(master, text="Chlorides", anchor="nw", width=15).grid(row=4)
-Label(master, text="Sulfur Dioxide", anchor="nw", width=15).grid(row=5)
-Label(master, text="Total Sulfur Dioxide", anchor="nw", width=15).grid(row=6)
-Label(master, text="Density", anchor="nw", width=15).grid(row=7)
-Label(master, text="pH", anchor="nw", width=15).grid(row=8)
-Label(master, text="Sulphates", anchor="nw", width=15).grid(row=9)
-Label(master, text="Alcohol", anchor="nw", width=15).grid(row=10)
-Label(master, text = "Quality", anchor="nw", width=15).grid(row=13)
+df.shape
 
-e1 = Entry(master)
-e2 = Entry(master)
-e3 = Entry(master)
-e4 = Entry(master)
-e5 = Entry(master)
-e6 = Entry(master)
-e7 = Entry(master)
-e8 = Entry(master)
-e9 = Entry(master)
-e10 = Entry(master)
-e11 = Entry(master)
-quality = Entry(master)
+df.isnull().sum()
 
-e1.grid(row=0, column=1)
-e2.grid(row=1, column=1)
-e3.grid(row=2, column=1)
-e4.grid(row=3, column=1)
-e5.grid(row=4, column=1)
-e6.grid(row=5, column=1)
-e7.grid(row=6, column=1)
-e8.grid(row=7, column=1)
-e9.grid(row=8, column=1)
-e10.grid(row=9, column=1)
-e11.grid(row=10, column=1)
-quality.grid(row=13, column=1)
+ df.info()
 
-Button(master, text='Quit', command=master.destroy,width=15).grid(row=11, column=0, sticky=W, pady=4)
-Button(master, text='Find Quality', command=showQuality,width=17).grid(row=11, column=1, sticky=W, pady=4)
-Button(master, text='Project By',width=15).grid(row=14, column=0, sticky=W, pady=4)
-Button(master, text='team 12',width=17).grid(row=14, column=1, sticky=W, pady=4)
-mainloop( )
+df.describe()
+
+df.skew()
+
+plt.figure(figsize=(10,7))
+sns.countplot(x ='quality', data = df)
+plt.xlabel('Quality of Red Wine')
+plt.ylabel('Count of Rows in the dataset')
+plt.show()
+
+index=0
+labels = df['quality']
+features = df.drop('quality', axis=1)
+
+for col in features.items():
+    plt.figure(figsize=(10,5))
+    sns.barplot(x=labels, y=col[index], data=df, color="deeppink")
+plt.tight_layout()
+plt.show()
+
+df = df.drop('free sulfur dioxide', axis=1)
+df
+
+df.shape
+
+z=np.abs(zscore(df))
+threshold=3
+np.where(z>3)
+
+df=df[(z<3).all(axis=1)]
+df
+
+df.shape
+
+# Percentage of Data Loss
+
+data_loss=(1599-1464)/1599*100
+# 1599 (number of rows in the original dataframe) and 1464 (number of rows after outlier removal)
+data_loss
+
+X = df.drop('quality', axis=1)
+Y = df['quality']
+
+Y.value_counts()
+
+oversample = SMOTE()
+X, Y = oversample.fit_resample(X, Y)
+
+Y.value_counts()
+
+Y = Y.apply(lambda y_value:1 if y_value>=7 else 0) # 1 is for good quality and 0 for bad (not good) quality
+Y # Displaying the label after applying label binarization
+
+X
+
+scaler = StandardScaler()
+X = pd.DataFrame(scaler.fit_transform(X), columns=X.columns)
+X # Displaying all the features after applying scaling technique to avoid bias output
+
+X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=21)
+
+def classify(model, X, Y):
+    X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2, random_state=21)
+
+    # Training the model
+    model.fit(X_train, Y_train)
+
+    # Predicting Y_test
+    pred = model.predict(X_test)
+
+    # Accuracy Score
+    acc_score = (accuracy_score(Y_test, pred))*100
+    print("Accuracy Score:", acc_score)
+
+    # Classification Report
+    class_report = classification_report(Y_test, pred)
+    print("\nClassification Report:\n", class_report)
+
+    # Cross Validation Score
+    cv_score = (cross_val_score(model, X, Y, cv=5).mean())*100
+    print("Cross Validation Score:", cv_score)
+
+    # Result of accuracy minus cv scores
+    result = acc_score - cv_score
+    print("\nAccuracy Score - Cross Validation Score is", result)
+
+model=LogisticRegression()
+classify(model, X, Y)
+
+model=SVC(C=1.0, kernel='rbf', gamma='auto', random_state=42)
+classify(model, X, Y)
+
+model=DecisionTreeClassifier(random_state=21, max_depth=15)
+classify(model, X, Y)
+
+model=RandomForestClassifier(max_depth=15, random_state=111)
+classify(model, X, Y)
+
+model=KNeighborsClassifier(n_neighbors=15)
+classify(model, X, Y)
+
+model=ExtraTreesClassifier()
+classify(model, X, Y)
+
+model=xgb.XGBClassifier(verbosity=0)
+classify(model, X, Y)
+
+Final_Model = SVC(decision_function_shape='ovo', gamma='scale', kernel='rbf', probability=True, random_state=21,
+                 shrinking=True, verbose=True)
+Classifier = Final_Model.fit(X_train, Y_train)
+fmod_pred = Final_Model.predict(X_test)
+fmod_acc = (accuracy_score(Y_test, fmod_pred))*100
+print("Accuracy score for the Best Model is:", fmod_acc)
+
+import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve, roc_auc_score
+
+# Calculate ROC curve and AUC
+fpr, tpr, thresholds = roc_curve(Y_test, Final_Model.predict_proba(X_test)[:, 1])
+auc = roc_auc_score(Y_test, Final_Model.predict_proba(X_test)[:, 1])
+
+# Plot ROC curve
+plt.figure()
+plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (AUC = {auc:.2f})')
+plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+plt.xlim([0.0, 1.0])
+plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.legend(loc='lower right')
+plt.show()
